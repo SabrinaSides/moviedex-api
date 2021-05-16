@@ -7,7 +7,8 @@ const movies = require('./movies.json') //movie data
 
 const app = express();
 
-app.use(morgan('dev'))
+const morganSetting = process.env.NODE_ENV === 'production' ? 'tiny' : 'common'
+app.use(morgan(morganSetting))
 app.use(helmet())
 app.use(cors())
 
@@ -47,8 +48,20 @@ function handleGetMovie(req, res){
 
 app.get('/movie', handleGetMovie)
 
-const PORT = 8000
+//error handler (4 parameters)
+app.use((error, req, res, next) => {
+    let response
+    if(process.env.NODE_ENV === 'production'){
+        respone = { error: {message: 'server error'}}
+    } else {
+        response = {error}
+    }
+    res.status(500).json(response)
+})
 
-app.listen(PORT, () => {
-    console.log(`Server listening at http://localhost:${PORT}`)
+const PORT = process.env.PORT || 8000
+const host = process.env.YOUR_HOST || '0.0.0.0'
+
+app.listen(PORT, host, () => {
+    console.log(`Server listening`)
 })
